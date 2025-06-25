@@ -93,274 +93,281 @@
 {{ room.dono.username|json_script:"json-roomowner" }}
 <script>
   let chatSocket;
-  let isSocketConnected = false;
-  const roomName = JSON.parse(document.getElementById('json-roomname').textContent);
-  const userName = JSON.parse(document.getElementById('json-username').textContent);
-  const roomOwner = JSON.parse(document.getElementById('json-roomowner').textContent);
-  
-  let confirmCallback = null;
+let isSocketConnected = false;
+const roomName = JSON.parse(document.getElementById('json-roomname').textContent);
+const userName = JSON.parse(document.getElementById('json-username').textContent);
+const roomOwner = JSON.parse(document.getElementById('json-roomowner').textContent);
 
-  function setupWebSocket() {
-      const wsScheme = window.location.protocol === "https:" ? "wss://" : "ws://";
-      chatSocket = new WebSocket(
-          'ws://' + window.location.host + '/ws/' + roomName + '/'
-      );
+let confirmCallback = null;
 
-      chatSocket.onopen = function() {
-          isSocketConnected = true;
-          updateConnectionStatus();
-          console.log('WebSocket connection established');
-      };
+function setupWebSocket() {
+    const wsScheme = window.location.protocol === "https:" ? "wss://" : "ws://";
+    chatSocket = new WebSocket(
+        wsScheme + window.location.host + '/ws/' + roomName + '/'
+    );
 
-      chatSocket.onmessage = function(e) {
-          const data = JSON.parse(e.data);
-          if (data.message) {
-              const container = document.getElementById('chat-messages');
-              if (data.action === 'delete') {
-                  const messageElement = document.getElementById(`mensagem-${data.message_id}`);
-                  if (messageElement) {
-                      messageElement.remove();
-                  }
-              } else if (data.action === 'edit') {
-                  const contentSpan = document.getElementById(`message-content-${data.message_id}`);
-                  if (contentSpan) {
-                      contentSpan.textContent = data.message;
-                  }
-              } else {
-                  // Handle new message
-                  container.innerHTML += createMessageElement(data);
-                  scrollToBottom();
-              }
-          }
-      };
+    chatSocket.onopen = function() {
+        isSocketConnected = true;
+        updateConnectionStatus();
+        console.log('WebSocket connection established');
+    };
 
-      chatSocket.onclose = function() {
-          console.log('WebSocket connection closed, attempting to reconnect...');
-          isSocketConnected = false;
-          updateConnectionStatus();
-          setTimeout(setupWebSocket, 3000); // Try to reconnect after 3 seconds
-      };
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        if (data.message) {
+            const container = document.getElementById('chat-messages');
+            if (data.action === 'delete') {
+                const messageElement = document.getElementById(`mensagem-${data.message_id}`);
+                if (messageElement) {
+                    messageElement.remove();
+                }
+            } else if (data.action === 'edit') {
+                const contentSpan = document.getElementById(`message-content-${data.message_id}`);
+                if (contentSpan) {
+                    contentSpan.textContent = data.message;
+                }
+            } else {
+                // New message received, append it
+                // Prevent duplicate message if sender is current user: optionally you can check here if you want
+                // For now, just append
+                container.innerHTML += createMessageElement(data);
+                scrollToBottom();
+            }
+        }
+    };
 
-      chatSocket.onerror = function(error) {
-          console.error('WebSocket error:', error);
-          isSocketConnected = false;
-          updateConnectionStatus();
-      };
-  }
+    chatSocket.onclose = function() {
+        console.log('WebSocket connection closed, attempting to reconnect...');
+        isSocketConnected = false;
+        updateConnectionStatus();
+        setTimeout(setupWebSocket, 3000); // Try to reconnect after 3 seconds
+    };
 
-  // Initialize WebSocket connection
-  setupWebSocket();
+    chatSocket.onerror = function(error) {
+        console.error('WebSocket error:', error);
+        isSocketConnected = false;
+        updateConnectionStatus();
+    };
+}
 
-  function updateConnectionStatus() {
-      const statusElement = document.getElementById('status-text');
-      const reconnectBtn = document.getElementById('reconnect-btn');
-      
-      if (isSocketConnected) {
-          statusElement.textContent = "Conectado";
-          statusElement.style.color = "green";
-          reconnectBtn.style.display = "none";
-      } else {
-          statusElement.textContent = "Desconectado (a tentar reconectar...)";
-          statusElement.style.color = "red";
-          reconnectBtn.style.display = "inline-block";
-      }
-  }
+// Initialize WebSocket connection
+setupWebSocket();
 
-  document.getElementById('reconnect-btn').addEventListener('click', function() {
-      setupWebSocket();
-  });
+function updateConnectionStatus() {
+    const statusElement = document.getElementById('status-text');
+    const reconnectBtn = document.getElementById('reconnect-btn');
+    
+    if (isSocketConnected) {
+        statusElement.textContent = "Conectado";
+        statusElement.style.color = "green";
+        reconnectBtn.style.display = "none";
+    } else {
+        statusElement.textContent = "Desconectado (a tentar reconectar...)";
+        statusElement.style.color = "red";
+        reconnectBtn.style.display = "inline-block";
+    }
+}
 
-  function confirmCustom(message) {
-      document.getElementById('confirm-message').textContent = message;
-      document.getElementById('confirm-modal').style.display = "flex";
+document.getElementById('reconnect-btn').addEventListener('click', function() {
+    setupWebSocket();
+});
 
-      return new Promise(resolve => {
-          confirmCallback = resolve;
-      });
-  }
+function confirmCustom(message) {
+    document.getElementById('confirm-message').textContent = message;
+    document.getElementById('confirm-modal').style.display = "flex";
 
-  function confirmAction(choice) {
-      document.getElementById('confirm-modal').style.display = "none";
-      if (confirmCallback) confirmCallback(choice);
-  }
+    return new Promise(resolve => {
+        confirmCallback = resolve;
+    });
+}
 
-  // Function to create a message element
-  function createMessageElement(data) {
-      const isOwnMessage = data.username === userName;
-      return `
-      <div id="mensagem-${data.message_id}" data-id="${data.message_id}" style="padding: 0.5rem; border-radius: 5px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <b>${data.username}</b>: <span id="message-content-${data.message_id}">${data.message}</span>
-          </div>
-          ${(isOwnMessage || roomOwner === userName) ? `
-          <div class="message-actions" style="display: none;">
-            ${isOwnMessage ? `
-            <button onclick="editMessage('${data.message_id}')" class="btn btn-sm btn-outline-secondary" style="background: none; border: none; cursor: pointer;" title="Edit">
-              <i class="bi bi-pencil"></i>
-            </button>
-            ` : ''}
-            <button onclick="deleteMessage('${data.message_id}')" class="btn btn-sm btn-outline-danger" style="background: none; border: none; cursor: pointer;" title="Delete">
-              <i class="bi bi-trash-fill"></i>
-            </button>
-          </div>
-          ` : ''}
+function confirmAction(choice) {
+    document.getElementById('confirm-modal').style.display = "none";
+    if (confirmCallback) confirmCallback(choice);
+}
+
+// Function to create a message element
+function createMessageElement(data) {
+    const isOwnMessage = data.username === userName;
+    return `
+    <div id="mensagem-${data.message_id}" data-id="${data.message_id}" style="padding: 0.5rem; border-radius: 5px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <b>${data.username}</b>: <span id="message-content-${data.message_id}">${data.message}</span>
         </div>
-      </div>`;
-  }
+        ${(isOwnMessage || roomOwner === userName) ? `
+        <div class="message-actions" style="display: none;">
+          ${isOwnMessage ? `
+          <button data-id="${data.message_id}" class="edit-btn btn btn-sm btn-outline-secondary" style="background: none; border: none; cursor: pointer;" title="Edit">
+            <i class="bi bi-pencil"></i>
+          </button>
+          ` : ''}
+          <button data-id="${data.message_id}" class="delete-btn btn btn-sm btn-outline-danger" style="background: none; border: none; cursor: pointer;" title="Delete">
+            <i class="bi bi-trash-fill"></i>
+          </button>
+        </div>
+        ` : ''}
+      </div>
+    </div>`;
+}
 
-  async function deleteMessage(messageId) {
-      const confirmDelete = await confirmCustom("Tem a certeza que deseja apagar a mensagem?");
-      if (!confirmDelete) return;
+async function deleteMessage(messageId) {
+    const confirmDelete = await confirmCustom("Tem a certeza que deseja apagar a mensagem?");
+    if (!confirmDelete) return;
 
-      try {
-          const response = await fetch(`/rooms/delete_message/${messageId}/`, {
-              method: 'POST',
-              headers: {
-                  'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                  'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({})
-          });
+    try {
+        const response = await fetch(`/rooms/delete_message/${messageId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({})
+        });
 
-          if (response.ok) {
-              document.getElementById(`mensagem-${messageId}`)?.remove();
-              
-              // Check if WebSocket is connected before sending
-              if (isSocketConnected) {
-                  chatSocket.send(JSON.stringify({
-                      action: 'delete',
-                      message_id: messageId,
-                      username: userName,
-                      room: roomName
-                  }));
-              } else {
-                  console.warn('WebSocket not connected, message deletion not broadcasted');
-              }
-          } else {
-              alert("Falha ao apagar mensagem. Por favor tente mais tarde");
-          }
-      } catch (err) {
-          console.error("Erro:", err);
-          alert("Ocorreu um erro ao apagar a mensagem");
-      }
-  }
+        if (response.ok) {
+            // Removal of the message element will happen when the server broadcasts the deletion,
+            // but we can optimistically remove it locally here:
+            document.getElementById(`mensagem-${messageId}`)?.remove();
 
-  async function editMessage(messageId) {
-      const contentSpan = document.getElementById(`message-content-${messageId}`);
-      if (!contentSpan) return;
+            // Send deletion broadcast via WebSocket if connected
+            if (isSocketConnected) {
+                chatSocket.send(JSON.stringify({
+                    action: 'delete',
+                    message_id: messageId,
+                    username: userName,
+                    room: roomName
+                }));
+            } else {
+                console.warn('WebSocket not connected, message deletion not broadcasted');
+            }
+        } else {
+            alert("Falha ao apagar mensagem. Por favor tente mais tarde");
+        }
+    } catch (err) {
+        console.error("Erro:", err);
+        alert("Ocorreu um erro ao apagar a mensagem");
+    }
+}
 
-      const currentContent = contentSpan.textContent;
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.value = currentContent;
-      input.className = 'form-control';
-      input.style.width = '100%';
-      
-      contentSpan.replaceWith(input);
-      input.focus();
+async function editMessage(messageId) {
+    const contentSpan = document.getElementById(`message-content-${messageId}`);
+    if (!contentSpan) return;
 
-      const saveEdit = async (e) => {
-          if (e.key === 'Enter' || e.type === 'blur') {
-              const newContent = input.value.trim();
-              if (!newContent || newContent === currentContent) {
-                  input.replaceWith(contentSpan);
-                  return;
-              }
+    const currentContent = contentSpan.textContent;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = currentContent;
+    input.className = 'form-control';
+    input.style.width = '100%';
+    
+    contentSpan.replaceWith(input);
+    input.focus();
 
-              try {
-                  const response = await fetch(`/rooms/edit_message/${messageId}/`, {
-                      method: 'POST',
-                      headers: {
-                          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                          'Content-Type': 'application/json'
-                      },
-                      body: JSON.stringify({ content: newContent })
-                  });
+    const saveEdit = async (e) => {
+        if (e.key === 'Enter' || e.type === 'blur') {
+            const newContent = input.value.trim();
+            if (!newContent || newContent === currentContent) {
+                input.replaceWith(contentSpan);
+                return;
+            }
 
-                  if (response.ok) {
-                      if (isSocketConnected) {
-                          chatSocket.send(JSON.stringify({
-                              action: 'edit',
-                              message_id: messageId,
-                              new_content: newContent,
-                              username: userName,
-                              room: roomName
-                          }));
-                      }
-                      
-                      const newSpan = document.createElement('span');
-                      newSpan.id = `message-content-${messageId}`;
-                      newSpan.textContent = newContent;
-                      input.replaceWith(newSpan);
-                  } else {
-                      alert("Erro a editar mensagem, por favor tente mais tarde.");
-                  }
-              } catch (err) {
-                  console.error("Erro:", err);
-              }
-          }
-      };
+            try {
+                const response = await fetch(`/rooms/edit_message/${messageId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ content: newContent })
+                });
 
-      input.addEventListener('keydown', saveEdit);
-      input.addEventListener('blur', saveEdit);
-  }
+                if (response.ok) {
+                    if (isSocketConnected) {
+                        chatSocket.send(JSON.stringify({
+                            action: 'edit',
+                            message_id: messageId,
+                            message: newContent,
+                            username: userName,
+                            room: roomName
+                        }));
+                    }
+                    
+                    const newSpan = document.createElement('span');
+                    newSpan.id = `message-content-${messageId}`;
+                    newSpan.textContent = newContent;
+                    input.replaceWith(newSpan);
+                } else {
+                    alert("Erro a editar mensagem, por favor tente mais tarde.");
+                    input.replaceWith(contentSpan);
+                }
+            } catch (err) {
+                console.error("Erro:", err);
+                input.replaceWith(contentSpan);
+            }
+        }
+    };
 
-  function sendMessage() {
-      const input = document.getElementById('chat-message-input');
-      const message = input.value.trim();
-      if (!message) return;
-      
-      if (isSocketConnected) {
-          chatSocket.send(JSON.stringify({
-              message: message,
-              username: userName,
-              room: roomName
-          }));
-          input.value = '';
-          input.style.height = 'auto';
-      } else {
-          // Fallback to form submission if WebSocket is not connected
-          document.getElementById('chat-form').submit();
-      }
-  }
+    input.addEventListener('keydown', saveEdit);
+    input.addEventListener('blur', saveEdit);
+}
 
-  function scrollToBottom() {
-      const objDiv = document.getElementById('chat-messages');
-      objDiv.scrollTop = objDiv.scrollHeight;
-  }
+function sendMessage() {
+    const input = document.getElementById('chat-message-input');
+    const message = input.value.trim();
+    if (!message) return;
+    
+    if (isSocketConnected) {
+        chatSocket.send(JSON.stringify({
+            message: message,
+            username: userName,
+            room: roomName
+        }));
+        input.value = '';
+        input.style.height = 'auto';
+    } else {
+        // Fallback to form submission if WebSocket is not connected
+        document.getElementById('chat-form').submit();
+    }
+}
 
-  // Event delegation for edit/delete buttons
-  document.getElementById('chat-messages').addEventListener('click', function(e) {
-      const editBtn = e.target.closest('.edit-btn');
-      const deleteBtn = e.target.closest('.delete-btn');
-      if (editBtn) {
-          const messageId = editBtn.dataset.id;
-          editMessage(messageId);
-      }
-      if (deleteBtn) {
-          const messageId = deleteBtn.dataset.id;
-          deleteMessage(messageId);
-      }
-  });
+function scrollToBottom() {
+    const objDiv = document.getElementById('chat-messages');
+    objDiv.scrollTop = objDiv.scrollHeight;
+}
 
-  // Prevent form submit behavior
-  document.getElementById('chat-form').addEventListener('submit', function(e) {
-      e.preventDefault();
-      sendMessage();
-  });
+// Event delegation for edit/delete buttons
+document.getElementById('chat-messages').addEventListener('click', function(e) {
+    const editBtn = e.target.closest('.edit-btn');
+    const deleteBtn = e.target.closest('.delete-btn');
+    if (editBtn) {
+        const messageId = editBtn.dataset.id;
+        editMessage(messageId);
+    }
+    if (deleteBtn) {
+        const messageId = deleteBtn.dataset.id;
+        deleteMessage(messageId);
+    }
+});
 
-  // Handle Enter key to send, disable Shift+Enter newlines
-  const textarea = document.getElementById('chat-message-input');
-  textarea.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          sendMessage();
-      }
-  });
+// Prevent form submit behavior
+document.getElementById('chat-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    sendMessage();
+});
 
-  textarea.focus();
-  scrollToBottom();
+// Handle Enter key to send, disable Shift+Enter newlines
+const textarea = document.getElementById('chat-message-input');
+textarea.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+});
+
+textarea.focus();
+scrollToBottom();
+
 </script>
 
 <style>

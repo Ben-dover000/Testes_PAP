@@ -1,0 +1,36 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ album.nome }} | Album{% endblock %}
+
+{% block content %}
+<div class="caixa-perfil paper">
+    <div class="album-container label">
+        <img class="img" src="{{ album.imagem.url }}" alt="{{ album.nome }}" />
+        <div class="detalhes_album">
+            <h1 class="fita">{{ album.nome }}</h1>
+            <h2 class="nome_artista label">Feito por: {{ album.artista }}</h2>
+        </div>
+        <form method="post" action="{% url 'toggle_album_favorito' album.id_album %}">
+            {% csrf_token %}
+            <button type="submit" class="favorite-button" style="background: none; border: none;">
+                {% if user in album.favorito.all %}
+                    <i class="bi bi-star-fill" style="color: gold;"></i>
+                {% else %}
+                    <i class="bi bi-star"></i>
+                {% endif %}
+            </button>
+        </form>
+    </div>
+
+    <p class="label"><strong>Descrição:</strong> {{ album.descricao }}</p>
+    <p class="label"><strong>Género:</strong> {{ album.genero }}</p>
+    <p class="label"><strong>Preço:</strong> ${{ album.preco }}</p>
+    <p class="label"><strong>Data de Lançamento:</strong> {{ album.data_de_lancamento }}</p>
+
+    {# Formulário corrigido para adicionar ao carrinho #}
+    <form action="{% url 'adicionar_ao_carrinho' album.id_album %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">Adicionar ao carrinho</button>
+    </form>
+</div>
+{% endblock %}

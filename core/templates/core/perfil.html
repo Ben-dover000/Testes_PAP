@@ -1,0 +1,113 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Perfil | {% endblock %}
+
+{% block content %}
+<div style="padding: 30px; border-color: transparent;"></div>
+
+<div class="caixa-perfil paper">
+    <h1 class="fita">Bem vindo {{user.username}}</h1>
+    <div style="border-color: transparent;">
+        <form method="post" enctype="multipart/form-data" class="" style="border-color: transparent;">
+            {% csrf_token %}
+            <fieldset class="" style="border-color: transparent;">
+                <legend style="border-color: transparent;">Editar Informações</legend>
+                {{ perfil_form.as_p }}
+                <button style="border-color: transparent;" type="submit" class="btn-papel">Guardar Alterações</button>
+            </fieldset>
+        </form>
+    </div>
+    <div class="info-item">
+        <span style="border-color: transparent;">Palavra-Passe</span>
+        <a href="{% url 'password_change' %}" class="btn-papel btn-small">
+            Alterar Palavra-Passe
+        </a>
+        <p style="color: gray; border-color: transparent; font-style: italic; margin: 0;">
+            Não partilhar a palavra passe com ninguém! Nenhum administrador pede pela palavra passe!
+        </p>
+    </div>
+    <!-- Álbuns Favoritos -->
+    <div class="favoritos-wrapper">
+        <h2 class="titulo-favoritos">Álbuns Favoritos</h2>
+        <div class="carousel-container">
+            <button class="carousel-btn left" onclick="scrollCarousel('albuns', -1)">❮</button>
+            <div class="favoritos-carousel" id="albuns-carousel">
+                {% for album in favoritos_albuns %}
+                <div class="post-it">
+                    <div class="favorito-info">
+                        <h3 style="border-color: transparent;" class="favorito-titulo">{{ album.nome }}</h3>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <button class="carousel-btn right" onclick="scrollCarousel('albuns', 1)">❯</button>
+        </div>
+    </div>
+
+    <!-- Artistas Favoritos -->
+    <div class="favoritos-wrapper">
+        <h2 class="titulo-favoritos">Artistas Favoritos</h2>
+        <div class="carousel-container">
+            <button class="carousel-btn left" onclick="scrollCarousel('artistas', -1)">❮</button>
+            <div class="favoritos-carousel" id="artistas-carousel">
+                {% for artista in favoritos_artistas %}
+                <div class="post-it">
+                    <a style="border-color: transparent;" href="{% url 'artista_detail' id_artista=artista.id_artista %}">
+                        <div style="border-color: transparent;" class="favorito-info">
+                            <h3 style="border-color: transparent;" class="favorito-titulo">{{ artista.nome }}</h3>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            <button class="carousel-btn right" onclick="scrollCarousel('artistas', 1)">❯</button>
+        </div>
+    </div>
+
+    <div class="logout-section">
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn-papel btn-logout">
+                Sair
+            </button>
+        </form>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const initCarousel = (carouselId) => {
+        const carousel = document.getElementById(carouselId);
+        if (carousel) {
+            const leftBtn = carousel.previousElementSibling;
+            const rightBtn = carousel.nextElementSibling;
+            const items = carousel.querySelectorAll('.post-it');
+
+            if (items.length > 4) {
+                leftBtn.style.display = 'flex';
+                leftBtn.style.visibility = 'visible';
+
+                rightBtn.style.display = 'flex';
+                rightBtn.style.visibility = 'visible';
+            } else {
+                leftBtn.style.display = 'none';
+                leftBtn.style.visibility = 'hidden';
+
+                rightBtn.style.display = 'none';
+                rightBtn.style.visibility = 'hidden';
+            }
+        }
+    };
+
+    initCarousel('albuns-carousel');
+    initCarousel('artistas-carousel');
+});
+
+function scrollCarousel(type, direction) {
+    const carousel = document.getElementById(`${type}-carousel`);
+    const scrollAmount = 300;
+    carousel.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+}
+
+</script>
+
+{% endblock %}

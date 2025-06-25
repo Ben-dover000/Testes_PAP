@@ -1,0 +1,24 @@
+{% extends 'core/base.html' %}
+{% block title %}Histórico de Compras | {% endblock %}
+{% block content %}
+<div style ="padding-top: 30px; border-color: transparent;"></div>
+<div class="paper-chat" style="max-width: 800px; margin: auto;">
+  <h1 class="fita">Histórico de Compras</h1>
+
+  {% if pedidos %}
+    {% for pedido in pedidos %}
+      <div class="pedido">
+        <h3 style = "border-color: transparent;">Pedido #{{ pedido.id }} - {{ pedido.data_pedido|date:"d/m/Y H:i" }}</h3>
+        <ul style = "border-color: transparent;">
+          {% for item in pedido.itens.all %}
+            <li style = "list-style: none; border-color: transparent;">{{ item.album.nome }} quantidade: {{ item.quantidade }} Preço: {{ item.preco_unitario|floatformat:2 }} €</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+    {% endfor %}
+  {% else %}
+    <p>Não foram encontradas compras anteriores.</p>
+  {% endif %}
+</div>
+{% endblock %}

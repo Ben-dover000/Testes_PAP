@@ -1,0 +1,61 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Login | {% endblock %}
+
+{% block content %}
+
+<form method="post" action="." class="caixa paper">
+    {% csrf_token %}
+
+    <div class="fita">
+        <h1 style="border-color: transparent;">Login</h1>
+    </div>
+
+    <div class="mb-5">
+        <label class="label">Nome:</label>
+        <input type="text" name="username" class="" placeholder="Nome de utilizador" value="{{ request.POST.username }}">
+        {% if form.username.errors %}
+            <div class="erro">
+                {% for error in form.username.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="mb-5">
+        <label class="label">Email:</label>
+        <input type="email" name="email" class="" placeholder="E-mail" value="{{ request.POST.email }}">
+        {% if form.email.errors %}
+            <div class="erro">
+                {% for error in form.email.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="mb-5">
+        <label class="label">Palavra-Passe:</label>
+        <input type="password" name="password" class="" placeholder="Palavra-Passe">
+        {% if form.password.errors %}
+            <div class="erro">
+                {% for error in form.password.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    {% if form.non_field_errors %}
+        <div class="erro">
+            {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-xl">Login</button>
+</form>
+
+{% endblock %}

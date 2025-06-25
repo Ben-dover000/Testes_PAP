@@ -1,0 +1,14 @@
+{% extends 'core/base.html' %}
+{% block title %}Pagamento Cancelado | {% endblock %}
+{% block content %}
+<div style ="padding-top: 30px; border-color: transparent;"></div>
+
+<div class="paper-chat" style="max-width: 600px; margin: auto;">
+  <h1 class="fita">Pagamento Cancelado</h1>
+  <p>O teu pagamento foi cancelado. Podes tentar novamente quando quiseres.</p>
+  <div class="d-flex gap-2">
+    <a href="{% url 'frontpage' %}" class="btn btn-primary">Voltar à Página Inicial</a>
+    <a href="{% url 'historico_compras' %}" class="btn btn-secondary">Ver Histórico de Compras</a>
+  </div>
+</div>
+{% endblock %}

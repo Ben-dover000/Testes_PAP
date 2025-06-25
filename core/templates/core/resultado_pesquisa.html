@@ -1,0 +1,71 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div style = "text-align: center;">
+  <h2 style="border-color: transparent;">Resultados para "{{ query }}"</h2>
+  <p style = "font-style: italic; color: gray; border-color: transparent;">
+    Atenção, os resultados apresentam ambos álbuns, artistas e utilizadores. E por isso podem ser um pouco confuso.
+  </p>
+</div>
+
+<div class = "paper-chat">
+<h2 class = "fita">Álbuns</h2>
+{% for album in album_results %}
+  <div class="card" style="width: 18rem; border-color: transparent; height: 100%;">
+    {% if album.imagem %}
+      <img src="{{ album.imagem.url }}" class="card-img-top" alt="{{ album.nome }}">
+    {% else %}
+      <img class="card-img-top" alt="Imagem não disponível">
+    {% endif %}
+    <div class="card-body">
+      <div class="card-content">
+        <h5 class="card-title">{{ album.nome }}</h5>
+        <p class="card-text">{{ album.descricao }}</p>
+      </div>
+      <a href="{% url 'album_detail' album.id_album %}" class="btn-papel">Ver mais sobre</a>
+    </div>
+  </div>
+{% empty %}
+  <p style="padding-top: 50px; border-color: transparent;">Nenhum album encontrado.</p>
+{% endfor %}
+</div>
+
+<div style = "padding-top: 30px; border-color: transparent;"></div>
+
+<div class = "paper-chat" style = "display: flex; flex-wrap: wrap; ">
+<h2 class = "fita">Artistas</h2>
+{% for artista in artist_results %}
+  <div class="card" style="width: 18rem; border-color: transparent; height: 100%;">
+    {% if artista.imagem %}
+      <img src="{{ artista.imagem.url }}" class="card-img-top" alt="{{ artista.nome }}">
+    {% else %}
+      <img class="card-img-top" alt="Imagem não disponível">
+    {% endif %}
+    <div class="card-body">
+      <div class="card-content">
+        <h5 class="card-title">{{ artista.nome }}</h5>
+        <p class="card-text">{{ artista.descricao }}</p>
+      </div>
+      <a href="{% url 'artista_detail' artista.id_artista %}" class="btn-papel">Ver mais sobre</a>
+    </div>
+  </div>
+{% empty %}
+  <p style="padding-top: 50px; border-color: transparent;">Nenhum artista encontrado.</p>
+{% endfor %}
+</div>
+
+<div style = "padding-top: 30px; border-color: transparent;"></div>
+
+<div class = "paper-chat">
+<h2 class = "fita">Utilizadores</h2>
+<div id="chat-messages" class="space-y-3" style="border-color: transparent; max-height: 400px; overflow-y: auto;">
+{% for perfil in perfil_results %}
+  <b class="label"><a href="{% url 'user_info' perfil.user.id %}" class="btn">
+    <i class="bi bi-person"></i> {{ perfil.user.username }}
+  </a>
+  </b><br>
+{% empty %}
+  <p style="padding-top: 30px; border-color: transparent;">Nenhum Utilizador encontrado.</p>
+{% endfor %}
+</div>
+{% endblock %}

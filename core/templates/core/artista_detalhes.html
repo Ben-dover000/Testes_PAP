@@ -1,0 +1,74 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ artista.nome }} | Artista{% endblock %}
+
+{% block content %}
+
+<div style="border-color:transparent; padding: 30px;"></div>
+
+<div class="caixa-perfil paper">
+    <div class="album-container label">
+        {% if artista.imagem %}
+            <img class="img" src="{{ artista.imagem.url }}" alt="{{ artista.nome }}" />
+        {% endif %}
+
+        <div class="detalhes_artista">
+            <h1 class="fita">{{ artista.nome }}</h1>
+            <h2 class="nome_artista label">{{ artista.nome }}</h2>
+        </div>
+
+        <form method="post" action="{% url 'toggle_artista_favorito' artista.id_artista %}">
+            {% csrf_token %}
+            <button type="submit" class="favorite-button" style="background: none; border: none;">
+                {% if user in artista.favorito.all %}
+                    <i class="bi bi-star-fill" style="border-color: transparent; color: gold;"></i>
+                {% else %}
+                    <i class="bi bi-star" style="border-color: transparent;"></i>
+                {% endif %}
+            </button>
+        </form>
+    </div>
+
+    <p class="label"><strong>Descrição:</strong> {{ artista.descricao }}</p>
+
+    {# Display fields based on artist type #}
+    {% if artista.artistasolo %}
+        {# This is a solo artist #}
+        <p><strong>Data de Nascimento:</strong> {{ artista.artistasolo.data_nascimento }}</p>
+        {% if artista.artistasolo.data_falecimento %}
+            <p><strong>Data de Falecimento:</strong> {{ artista.artistasolo.data_falecimento }}</p>
+        {% endif %}
+        
+        {# Show groups this artist is part of #}
+        {% with grupos=artista.artistasolo.grupos.all %}
+            {% if grupos %}
+                <p><strong>Membro de:</strong>
+                {% for grupo in grupos %}
+                    <a href="{% url 'artista_detail' grupo.id_artista %}">{{ grupo.nome }}</a>{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+                </p>
+            {% endif %}
+        {% endwith %}
+    {% elif artista.grupomusical %}
+        {# This is a musical group #}
+        {% if artista.grupomusical.data_fundacao %}
+            <p><strong>Data de Fundação:</strong> {{ artista.grupomusical.data_fundacao }}</p>
+        {% endif %}
+        {% if artista.grupomusical.data_encerramento %}
+            <p><strong>Data de Encerramento:</strong> {{ artista.grupomusical.data_encerramento }}</p>
+        {% endif %}
+        
+        {# Show group members #}
+        {% with integrantes=artista.grupomusical.integrantes.all %}
+            {% if integrantes %}
+                <p><strong>Integrantes:</strong>
+                {% for integrante in integrantes %}
+                    <a href="{% url 'artista_detail' integrante.id_artista %}">{{ integrante.nome }}</a>{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+                </p>
+            {% endif %}
+        {% endwith %}
+    {% endif %}
+</div>
+
+{% endblock %}

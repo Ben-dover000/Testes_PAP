@@ -1,0 +1,17 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Palavra-Passe Alterada{% endblock %}
+
+{% block content %}
+<div style = "padding-bottom: 30px; border-color: transparent;"></div>
+<div class = "paper-chat" style = "padding-bottom: 150px;">
+    <div style = "padding-bottom: 30px; border-color: transparent;">
+
+        <p style = "padding-bottom: 30px; border-color: transparent;">Tudo pronto! {{ user.username }}! Não te esqueças de guardar a nova palavra-passe.</p>
+        <h2 class = "fita">Palavra-Passe Alterada com Sucesso!</h2>
+        <a href="{% url 'perfil' %}">Voltar ao Perfil</a>
+        <a href="{% url 'frontpage' %}">Voltar a Página inicial</a>
+        <a href="{% url 'rooms' %}">Voltar ao Chat</a>
+    </div>
+</div>
+{% endblock %}

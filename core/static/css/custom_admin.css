@@ -1,0 +1,419 @@
+@font-face {
+  font-family: Handwritten;
+  src: url(ArchitectsDaughter-Regular.ttf);
+}
+@font-face {
+  font-family: Mono;
+  src: url(Jackwrite.woff2);
+}
+
+body {
+  /*background: #dad7cd;*/
+  /*background: #ebf4e9;*/
+  margin: 0;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+
+}
+*:not(html):not(body) {
+ font-family: 'Handwritten', cursive;
+ font-size: 1.25rem;
+ padding: 0.5rem 0.5rem;
+ margin: .5rem .25rem .25rem;
+ outline: none;
+ border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
+ border: solid 0.1em #4140344E;
+}
+
+:root {
+  --tape-gray: #d8d2c4;
+  --tape-edge-gray: #b5b0a6;
+}
+
+#tape-wrapper {
+  border-color: transparent;
+  position: relative;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.tape-corner {
+  position: absolute;
+  width: 7vmin;
+  height: 5vmin;
+  background-color: var(--tape-gray);
+  opacity: 0.7;
+  border-left: 1px dotted var(--tape-edge-gray);
+  border-right: 1px dotted var(--tape-edge-gray);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  z-index: 3;
+
+
+  clip-path: polygon(
+    0 0, 100% 0,
+    100% 70%, 90% 100%,
+    80% 70%, 70% 100%,
+    60% 70%, 50% 100%,
+    40% 70%, 30% 100%,
+    20% 70%, 10% 100%,
+    0 70%
+  );
+}
+
+.tape-corner.left {
+  top: -1.5vmin;
+  left: -1.5vmin;
+  transform: rotate(-12deg) skewX(-3deg);
+}
+
+.tape-corner.right {
+  top: -1.5vmin;
+  right: -1.5vmin;
+  transform: rotate(12deg) skewX(3deg);
+}
+.header {
+  position: relative;
+  background: white;
+  padding: 20px 10px;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* soft lift effect */
+}
+
+
+.header a {
+  color: black;
+  text-align: center;
+  padding: 12px;
+  text-decoration: none;
+  font-size: 18px;
+  line-height: 25px;
+  border-radius: 4px;
+}
+
+.header a.logo {
+  font-size: 2em;
+  border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
+  border: solid 0.1em #63625a4e;
+  transform: rotate(0.9deg);
+  font-weight: bold;
+}
+
+.header a:hover {
+  border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
+  background-color: #f1f1f1;
+  color: black;
+}
+
+.header-right {
+  display: flex;
+  gap: 10px;
+  border-color: transparent;
+}
+
+@media screen and (max-width: 500px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-right {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header a {
+    display: block;
+    text-align: left;
+  }
+}
+
+
+.fita {
+  font-size: 1.5rem;
+  position: absolute;
+  top: -15px;
+  left: -20px;
+  padding: 5px 25px;
+  background: linear-gradient(145deg, #f5e36b, #e3d45f);
+  color: #333;
+  font-weight: bold;
+  font-family: 'Courier New', Courier, monospace;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.2), 2px 2px 5px rgba(0,0,0,0.3);
+  transform: rotate(-12deg);
+  clip-path: polygon(0 0, 100% 5%, 95% 100%, 5% 95%);
+  opacity: 0.9;
+  border-top: 1px solid rgba(255,255,255,0.7);
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+  z-index: inherit;
+}
+  
+/* Paper Chat Background */
+.paper-chat {
+  position: relative;
+  background: var(--paper-color);
+  margin: 2rem;
+  padding: calc(var(--top-space) - 0.5lh) 3rem 1rem 5.5rem;
+  font-size: 1.5rem;
+  line-height: 1.6;
+  color: var(--ink-color);
+  background-image: 
+    /* Red line */
+    linear-gradient(
+      90deg,
+      transparent,
+      transparent 4rem,
+      var(--side-line-color) 4rem,
+      var(--side-line-color) 4.25rem,
+      transparent 4.25rem
+    ),
+    /* Top space */
+    linear-gradient(
+      var(--paper-color),
+      var(--paper-color) var(--top-space),
+      transparent var(--top-space)
+    ),
+    /* Repeating blue lines */
+    repeating-linear-gradient(
+      transparent,
+      transparent calc(1lh - var(--line-thickness)),
+      var(--main-line-color) calc(1lh - var(--line-thickness)),
+      var(--main-line-color) 1lh,
+      transparent 1lh
+    );
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #fdfdfb; /* light paper tone */
+  border-left: 1px solid #e2e0d9; /* subtle paper edge */
+  box-shadow: inset 0 0 5px rgba(0,0,0,0.05); /* light shadow */
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d4cfc5; /* light parchment color */
+  border: 2px solid #fdfdfb; /* border blends into track */
+  border-radius: 10px;
+  box-shadow: inset 0 0 3px rgba(0,0,0,0.1);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #c2bdb0;
+}
+
+
+/* ======================= */
+/* ADMIN LAYOUT IMPROVEMENTS */
+/* ======================= */
+
+/* Main container spacing */
+#content {
+    padding: 30px 40px;
+}
+
+/* Module headers */
+.module h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px dashed #4140344E;
+}
+
+/* Model groups (like "Graph", "Abusos", "Ecomas") */
+.app-appname.module {
+    margin-bottom: 3rem;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Model tables */
+.module table {
+    width: 100%;
+    margin: 1.5rem 0;
+}
+
+/* Table rows */
+.module tr {
+    height: 3.5rem;
+}
+
+/* Cells */
+.module th, .module td {
+    padding: 1rem 1.5rem;
+    vertical-align: middle;
+}
+
+/* Links */
+.module a:link, .module a:visited {
+    color: #2c5e8f;
+    border-color: transparent;
+    text-decoration: none;
+    transition: all 0.2s;
+    padding: 0.5rem 1rem;
+    display: inline-block;
+}
+
+.module a:hover {
+    color: #1a3a5a;
+    background-color: #f0f4f8;
+    border-radius: 4px;
+}
+
+/* Add buttons */
+.addlink {
+    background-color: #4a8c3a;
+    color: white !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 4px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.addlink:hover {
+    background-color: #3a6c2a !important;
+}
+
+/* Changelist filters */
+#changelist-filter {
+    padding: 1.5rem;
+    margin-left: 2rem;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+/* Breadcrumbs */
+.breadcrumbs {
+    padding: 1rem 0;
+    margin-bottom: 2rem;
+}
+
+/* Form fields */
+.form-row {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+}
+
+/* Submit row */
+.submit-row {
+    padding: 2rem !important;
+    margin-top: 3rem;
+}
+
+.module * {
+    font-family: 'Handwritten', cursive;
+}
+
+input, textarea, select {
+    border-radius: 255px 15px 225px 15px/15px 225px 15px 255px !important;
+    padding: 0.8rem 1rem !important;
+    border-color: transparent;
+}
+
+#content-main {
+    padding: 2rem;
+    border-color: transparent;
+}
+
+.important-section::before {
+    content: '';
+    border-color: transparent;
+    position: absolute;
+    width: 100px;
+    height: 30px;
+    background: linear-gradient(145deg, #f5e36b, #e3d45f);
+    transform: rotate(-5deg);
+    top: -15px;
+    left: -10px;
+    z-index: -1;
+    opacity: 0.7;
+    border-color: transparent;
+} 
+
+.clear{
+  border-color: transparent;
+}
+
+.sortremove{
+  border-color: transparent;
+  display: none;
+}
+
+.object-tools{
+  padding-left: 0;
+  list-style-type: none;
+  border-color: transparent;
+}
+
+li {
+  display: list-item;
+  border-color: transparent !important;
+}
+#changelist-search{
+  border-color: transparent;
+}
+
+#changelist-form{
+  border-color: transparent !important;
+}
+
+.changelist-form-container{
+  border-color:transparent;
+}
+
+#toolbar{
+  border-color:transparent !important;
+}
+
+img{
+  border-color: transparent !important;
+}
+
+label{
+  border-color: transparent !important;
+}
+
+.results{
+  border-color: transparent !important;
+}
+
+#user_form{
+  border-color: transparent !important;
+}
+
+.form-row{
+  border-color: transparent;
+}
+
+.help{
+  border-color: transparent;
+}
+
+.module{
+  border-color: transparent !important;
+}
+
+
+a {
+  margin: 0 10px;
+  color: #555;
+  text-decoration: none;
+  position: relative;
+}
+
+a:hover {
+  color: #2d22c9;
+  text-decoration: underline wavy;
+}
+

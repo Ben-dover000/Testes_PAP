@@ -1,0 +1,102 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Criar Conta | {% endblock %}
+
+{% block content %}
+
+<div style="padding-top: 50px; border-color: transparent;"></div>
+
+
+<form method="post" action="." class="caixa paper">
+    {% csrf_token %}
+
+    <div class="fita">
+        <h1 style="border-color: transparent;">Criar Conta</h1>
+    </div>
+
+    <div class="mb-5">
+        <label class="label">Username:</label>
+        <input type="text" name="username" placeholder="Nome de utilizador" value="{{ request.POST.username }}">
+        {% if form.username.errors %}
+            <div class="erro">
+                {% for error in form.username.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Primeiro Nome -->
+<div class="mb-5">
+    <label class="label">Primeiro Nome:</label>
+    <input type="text" name="first_name" placeholder="Primeiro nome" value="{{ request.POST.first_name }}">
+    {% if form.first_name.errors %}
+        <div class="erro">
+            {% for error in form.first_name.errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+<!-- Último Nome -->
+<div class="mb-5">
+    <label class="label">Último Nome:</label>
+    <input type="text" name="last_name" placeholder="Último nome" value="{{ request.POST.last_name }}">
+    {% if form.last_name.errors %}
+        <div class="erro">
+            {% for error in form.last_name.errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+    <div class="mb-5">
+        <label class="label">Email:</label>
+        <input type="email" name="email" placeholder="E-mail" value="{{ request.POST.email }}">
+        {% if form.email.errors %}
+            <div class="erro">
+                {% for error in form.email.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="mb-5">
+        <label class="label">Palavra-Passe:</label>
+        <input type="password" name="password1" placeholder="Palavra-Passe">
+        {% if form.password1.errors %}
+            <div class="erro">
+                {% for error in form.password1.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="mb-5">
+        <label class="label">Confirmar Palavra-Passe:</label>
+        <input type="password" name="password2" placeholder="Confirmar">
+        {% if form.password2.errors %}
+            <div class="erro">
+                {% for error in form.password2.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    {% if form.non_field_errors %}
+        <div class="error">
+            {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <button>Criar Conta</button>
+</form>
+
+{% endblock %}

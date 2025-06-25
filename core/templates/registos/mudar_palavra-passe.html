@@ -1,0 +1,53 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Alterar Palavra-Passe{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: center; border-color: transparent;">
+    <div style="max-width: 600px; width: 100%; border-color: transparent;">
+        <div style="padding-bottom: 30px; border-color: transparent;"></div>
+        <div class="caixa paper">
+            <h2 class="fita">Alterar Palavra-Passe</h2>
+            <form method="post" style="border-color: transparent;">
+                {% csrf_token %}
+                <div>
+                    <label style="border-color: transparent;" for="id_old_password">Palavra-Passe Atual:</label>
+                    {{ form.old_password }}
+                    {% if form.old_password.errors %}
+                        <div class="erro">
+                            {% for error in form.old_password.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div>
+                    <label for="id_new_password1" style="border-color: transparent;">Nova Palavra-Passe:</label>
+                    {{ form.new_password1 }}
+                    {% if form.new_password1.errors %}
+                        <div class="erro">
+                            {% for error in form.new_password1.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="id_new_password2" style="border-color: transparent;">Confirmar Nova Palavra-Passe:</label>
+                    {{ form.new_password2 }}
+                    {% if form.new_password2.errors %}
+                        <div class="erro">
+                            {% for error in form.new_password2.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <button class = "btn-papel" type="submit">Mudar Palavra-Passe</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

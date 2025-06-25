@@ -1,0 +1,76 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Bem Vindo! | {% endblock %}
+
+{% block content %}
+<div style="text-align: center;">
+  <h4 style="padding: 30px; border-color: transparent; font-size: 1.5em;">
+    Conecte-se à música, colecione emoções!
+  </h4>
+  <div style="border-color: transparent; margin-top: -20px;">
+    <a href="{% url 'artista_aleatorio' %}">
+      Artista aleatório
+    </a>
+    <a href="{% url 'album_aleatorio' %}">
+      Album aleatório
+    </a>
+  </div>
+</div>
+
+
+
+
+<div style = "padding: 50px; border-color: transparent;">
+<!-- Papel, mostrar álbuns -->
+    <div class="caixa paper">
+      <h1 class="fita">Algumas sugestões de álbuns</h1>
+      {% for album in albums %}
+        <div class="card" style="width: 18rem; border-color: transparent;">
+            {% if album.imagem %}
+              <img src="{{ album.imagem.url }}" class="card-img-top" alt="{{ album.nome }}">
+          {% else %}
+              <img src="{% static 'images/default_album.jpg' %}" class="card-img-top" alt="Imagem não disponível">
+          {% endif %}
+            <div class="card-body">
+              <h5 class="card-title" style="border-color: transparent;">{{ album.nome }}</h5>
+              <p class="card-text" style="border-color: transparent;">{{ album.breve_descricao }}</p>
+              <a href="{% url 'album_detail' album.id_album %}" class="btn-papel">
+                Ver mais sobre
+            </a>
+            </div>
+        </div>
+        {% empty %}
+            <p>Não há álbuns disponíveis no momento.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<!--<img src="{% static 'images/psi.png' %}">-->
+<div style = "padding: 50px; border-color: transparent; padding-top: 100px;">
+<!-- Papel, mostrar artistas -->
+    <div class="caixa paper">
+      <h1 class="fita">Algumas sugestões de artistas</h1>
+
+      {% for artista in artistas %}
+        <div class="card" style="width: 18rem; border-color: transparent; height: 100%;">
+        {% if artista.imagem %}
+            <img src="{{ artista.imagem.url }}" class="card-img-top" alt="{{ artista.nome }}">
+        {% else %}
+            <img src="{% static 'images/default_artista.jpg' %}" class="card-img-top" alt="Imagem não disponível">
+        {% endif %}
+        <div class="card-body">
+            <div class="card-content">
+                <h5 class="card-title">{{ artista.nome }}</h5>
+                <p class="card-text">{{ artista.descricao }}</p>
+            </div>
+            <a href="{% url 'artista_detail' artista.id_artista %}" class="btn-papel">Ver mais sobre</a>
+        </div>
+    </div>
+
+      {% empty %}
+          <p>Não há artistas disponíveis no momento.</p>
+      {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class = "paper-chat">
+<h2 class ="fita">Convites pendentes</h2>
+
+{% if convite_pendente %}
+<ul>
+    {% for invite in convite_pendente %}
+    <li>
+        <strong>{{ invite.invited_by.username }}</strong> convidou-te para te juntares! 
+        <strong>{{ invite.room.name }}</strong>
+        <div>
+            <a href="{% url 'accept_invite' invite.id %}" class="btn btn-success">Aceitar</a>
+            <a href="{% url 'reject_invite' invite.id %}" class="btn btn-danger">Rejeitar</a>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>Infelizmente não tens convites pendentes...</p>
+{% endif %}
+
+</div>
+{% endblock %}

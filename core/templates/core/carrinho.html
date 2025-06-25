@@ -1,0 +1,86 @@
+{% extends 'core/base.html' %}
+{% block title %}Carrinho | {% endblock %}
+
+{% block content %}
+<div style="border-color: transparent; padding-bottom: 30px;"></div>
+
+<div class="paper-chat" style="max-width: 1500%;">
+    <h1 class="fita">O Teu Carrinho</h1>
+
+    {% if carrinho_itens %}
+    <div class="tabela-carrinho" style = "border-color: transparent;">
+        <table style="width: 100%; background-color: transparent;">
+            <thead>
+                <tr>
+                    <th>Álbum</th>
+                    <th>Quantidade</th>
+                    <th>Preço Unitário</th>
+                    <th>Subtotal</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in carrinho_itens %}
+                <tr>
+                    <td>{{ item.album.nome }}</td>
+                    <td>
+                        <input type="number" 
+                               class="quantidade-input" 
+                               data-id="{{ item.id }}" 
+                               value="{{ item.quantidade }}" 
+                               min="1" 
+                               style="width: 60px; padding: 5px;" />
+                    </td>
+                    <td>{{ item.album.preco }}€</td>
+                    <td>{{ item.total_price }}€</td>
+                    <td>
+                        <a href="{% url 'remover_do_carrinho' item.id %}" class="btn btn-sm btn-danger" style = "width: 60%;">Remover</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div style="border-color: transparent; margin-top: 25px; text-align: right;">
+        <h4 style = "border-color: transparent;">Total: <strong id="carrinho-total">{{ carrinho_total }}€</strong></h4>
+    </div>
+
+    <div style="border-color: transparent; text-align: right; margin-top: 20px;">
+        <form action="{% url 'checkout' %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn-papel">Pagar Agora</button>
+        </form>
+    </div>
+
+    {% else %}
+    <p style="text-align: center; font-style: italic;">O teu carrinho está vazio.</p>
+    {% endif %}
+</div>
+
+<script>
+document.querySelectorAll('.quantidade-input').forEach(input => {
+    input.addEventListener('change', function() {
+        const itemId = this.dataset.id;
+        const quantidade = this.value;
+        
+        fetch(`/carrinho/update/${itemId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: new URLSearchParams({ 'quantidade': quantidade })
+        })
+        .then(response => {
+            if (response.ok) {
+                // Atualiza a página ou, se preferires, atualiza apenas subtotal e total com JavaScript
+                location.reload();
+            } else {
+                alert("Erro ao atualizar quantidade.");
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

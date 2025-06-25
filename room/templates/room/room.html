@@ -1,0 +1,424 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ room.nome }} | {% endblock %}
+
+{% block content %}
+<div class="chat-container" style="display: flex; gap: 1rem; align-items: flex-start;">
+  <ul style="list-style: none; padding-left: 0;">
+    {% for user in users %}
+      <li class="utilizadores" style="margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: space-between;">
+        <a href="{% url 'user_info' user.id %}" style="border-color: transparent; text-decoration: none;">{{ user.username }}</a>
+        {% if user != request.user and request.user == room.dono %}
+          <form method="post" action="{% url 'kick_user' room.slug user.id %}" style="margin: 0;">
+            {% csrf_token %}
+            <button type="submit" title="Kick user" class="btn btn-sm btn-outline-danger" style="background: none; border: none; cursor: pointer;">
+              <i class="bi bi-person-fill-x"></i>
+            </button>
+          </form>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+  <div class="paper-chat" style="border-color: transparent; flex: 1; min-width: 0;">
+    <h1 class="fita">{{ room.nome }}</h1>
+    <div id="chat-messages" class="space-y-3" style="max-height: 400px; overflow-y: auto;">
+      {% for m in messages %}
+      <div id="mensagem-{{ m.id }}" data-id="{{ m.id }}" style="border-radius: 5px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-color: transparent;">
+          <div style="border-color: transparent;">
+            <b class="label" style="border-color: transparent;">{{ m.user.username }}</b>: <span style="border-color: transparent;" id="message-content-{{ m.id }}">{{ m.content }}</span>
+          </div>
+          {% if m.user == request.user or request.user == room.dono %}
+          <div class="message-actions" style="display: none; border-color: transparent;">
+            {% if m.user == request.user %}
+              <button onclick="editMessage('{{ m.id }}')" class="btn btn-sm btn-outline-secondary" style="background: none; border: none; cursor: pointer;" title="Editar">
+                <i class="bi bi-pencil"></i>
+              </button>
+            {% endif %}
+            <button onclick="deleteMessage('{{ m.id }}')" class="btn btn-sm apagar" style="background: none; border: none; cursor: pointer;" title="Apagar">
+              <i class="bi bi-trash-fill"></i>
+            </button>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <div style="border-color: transparent;">
+      <form method="post" action="." id="chat-form" class="relative" style="border-color: transparent;">
+        {% csrf_token %}
+        <div style="border-color: transparent;">
+          <textarea
+            name="content"
+            id="chat-message-input"
+            class="w-full pr-12 resize-none border rounded-xl p-3"
+            placeholder="Escreva algo..."
+            autocomplete="off"
+            rows="1"
+          ></textarea>
+
+          <button
+            type="submit"
+            id="chat-message-submit"
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-teal-600 hover:text-teal-800"
+          >
+            <i class="bi bi-send text-xl"></i>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Container -->
+<div id="confirm-modal" class="modal-container" style="display: none;">
+    <div class="modal-content">
+        <p id="confirm-message">Tem a certeza?</p>
+        <button onclick="confirmAction(true)" class="btn btn-danger">Sim</button>
+        <button onclick="confirmAction(false)" class="btn btn-secondary">Não</button>
+    </div>
+</div>
+
+<!-- Connection Status Indicator -->
+<div id="connection-status" style="position: fixed; bottom: 10px; right: 10px; padding: 5px 10px; border-radius: 3px; background: #eee; z-index: 1000;">
+    <span id="status-text">Conectando...</span>
+    <button id="reconnect-btn" style="margin-left: 10px; display: none;">Reconectar</button>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ room.slug|json_script:"json-roomname" }}
+{{ request.user.username|json_script:"json-username" }}
+{{ room.dono.username|json_script:"json-roomowner" }}
+<script>
+  let chatSocket;
+  let isSocketConnected = false;
+  const roomName = JSON.parse(document.getElementById('json-roomname').textContent);
+  const userName = JSON.parse(document.getElementById('json-username').textContent);
+  const roomOwner = JSON.parse(document.getElementById('json-roomowner').textContent);
+  
+  let confirmCallback = null;
+
+  function setupWebSocket() {
+      chatSocket = new WebSocket(
+          'ws://' + window.location.host + '/ws/' + roomName + '/'
+      );
+
+      chatSocket.onopen = function() {
+          isSocketConnected = true;
+          updateConnectionStatus();
+          console.log('WebSocket connection established');
+      };
+
+      chatSocket.onmessage = function(e) {
+          const data = JSON.parse(e.data);
+          if (data.message) {
+              const container = document.getElementById('chat-messages');
+              if (data.action === 'delete') {
+                  const messageElement = document.getElementById(`mensagem-${data.message_id}`);
+                  if (messageElement) {
+                      messageElement.remove();
+                  }
+              } else if (data.action === 'edit') {
+                  const contentSpan = document.getElementById(`message-content-${data.message_id}`);
+                  if (contentSpan) {
+                      contentSpan.textContent = data.message;
+                  }
+              } else {
+                  // Handle new message
+                  container.innerHTML += createMessageElement(data);
+                  scrollToBottom();
+              }
+          }
+      };
+
+      chatSocket.onclose = function() {
+          console.log('WebSocket connection closed, attempting to reconnect...');
+          isSocketConnected = false;
+          updateConnectionStatus();
+          setTimeout(setupWebSocket, 3000); // Try to reconnect after 3 seconds
+      };
+
+      chatSocket.onerror = function(error) {
+          console.error('WebSocket error:', error);
+          isSocketConnected = false;
+          updateConnectionStatus();
+      };
+  }
+
+  // Initialize WebSocket connection
+  setupWebSocket();
+
+  function updateConnectionStatus() {
+      const statusElement = document.getElementById('status-text');
+      const reconnectBtn = document.getElementById('reconnect-btn');
+      
+      if (isSocketConnected) {
+          statusElement.textContent = "Conectado";
+          statusElement.style.color = "green";
+          reconnectBtn.style.display = "none";
+      } else {
+          statusElement.textContent = "Desconectado (a tentar reconectar...)";
+          statusElement.style.color = "red";
+          reconnectBtn.style.display = "inline-block";
+      }
+  }
+
+  document.getElementById('reconnect-btn').addEventListener('click', function() {
+      setupWebSocket();
+  });
+
+  function confirmCustom(message) {
+      document.getElementById('confirm-message').textContent = message;
+      document.getElementById('confirm-modal').style.display = "flex";
+
+      return new Promise(resolve => {
+          confirmCallback = resolve;
+      });
+  }
+
+  function confirmAction(choice) {
+      document.getElementById('confirm-modal').style.display = "none";
+      if (confirmCallback) confirmCallback(choice);
+  }
+
+  // Function to create a message element
+  function createMessageElement(data) {
+      const isOwnMessage = data.username === userName;
+      return `
+      <div id="mensagem-${data.message_id}" data-id="${data.message_id}" style="padding: 0.5rem; border-radius: 5px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <b>${data.username}</b>: <span id="message-content-${data.message_id}">${data.message}</span>
+          </div>
+          ${(isOwnMessage || roomOwner === userName) ? `
+          <div class="message-actions" style="display: none;">
+            ${isOwnMessage ? `
+            <button onclick="editMessage('${data.message_id}')" class="btn btn-sm btn-outline-secondary" style="background: none; border: none; cursor: pointer;" title="Edit">
+              <i class="bi bi-pencil"></i>
+            </button>
+            ` : ''}
+            <button onclick="deleteMessage('${data.message_id}')" class="btn btn-sm btn-outline-danger" style="background: none; border: none; cursor: pointer;" title="Delete">
+              <i class="bi bi-trash-fill"></i>
+            </button>
+          </div>
+          ` : ''}
+        </div>
+      </div>`;
+  }
+
+  async function deleteMessage(messageId) {
+      const confirmDelete = await confirmCustom("Tem a certeza que deseja apagar a mensagem?");
+      if (!confirmDelete) return;
+
+      try {
+          const response = await fetch(`/rooms/delete_message/${messageId}/`, {
+              method: 'POST',
+              headers: {
+                  'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({})
+          });
+
+          if (response.ok) {
+              document.getElementById(`mensagem-${messageId}`)?.remove();
+              
+              // Check if WebSocket is connected before sending
+              if (isSocketConnected) {
+                  chatSocket.send(JSON.stringify({
+                      action: 'delete',
+                      message_id: messageId,
+                      username: userName,
+                      room: roomName
+                  }));
+              } else {
+                  console.warn('WebSocket not connected, message deletion not broadcasted');
+              }
+          } else {
+              alert("Falha ao apagar mensagem. Por favor tente mais tarde");
+          }
+      } catch (err) {
+          console.error("Erro:", err);
+          alert("Ocorreu um erro ao apagar a mensagem");
+      }
+  }
+
+  async function editMessage(messageId) {
+      const contentSpan = document.getElementById(`message-content-${messageId}`);
+      if (!contentSpan) return;
+
+      const currentContent = contentSpan.textContent;
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = currentContent;
+      input.className = 'form-control';
+      input.style.width = '100%';
+      
+      contentSpan.replaceWith(input);
+      input.focus();
+
+      const saveEdit = async (e) => {
+          if (e.key === 'Enter' || e.type === 'blur') {
+              const newContent = input.value.trim();
+              if (!newContent || newContent === currentContent) {
+                  input.replaceWith(contentSpan);
+                  return;
+              }
+
+              try {
+                  const response = await fetch(`/rooms/edit_message/${messageId}/`, {
+                      method: 'POST',
+                      headers: {
+                          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                          'Content-Type': 'application/json'
+                      },
+                      body: JSON.stringify({ content: newContent })
+                  });
+
+                  if (response.ok) {
+                      if (isSocketConnected) {
+                          chatSocket.send(JSON.stringify({
+                              action: 'edit',
+                              message_id: messageId,
+                              new_content: newContent,
+                              username: userName,
+                              room: roomName
+                          }));
+                      }
+                      
+                      const newSpan = document.createElement('span');
+                      newSpan.id = `message-content-${messageId}`;
+                      newSpan.textContent = newContent;
+                      input.replaceWith(newSpan);
+                  } else {
+                      alert("Erro a editar mensagem, por favor tente mais tarde.");
+                  }
+              } catch (err) {
+                  console.error("Erro:", err);
+              }
+          }
+      };
+
+      input.addEventListener('keydown', saveEdit);
+      input.addEventListener('blur', saveEdit);
+  }
+
+  function sendMessage() {
+      const input = document.getElementById('chat-message-input');
+      const message = input.value.trim();
+      if (!message) return;
+      
+      if (isSocketConnected) {
+          chatSocket.send(JSON.stringify({
+              message: message,
+              username: userName,
+              room: roomName
+          }));
+          input.value = '';
+          input.style.height = 'auto';
+      } else {
+          // Fallback to form submission if WebSocket is not connected
+          document.getElementById('chat-form').submit();
+      }
+  }
+
+  function scrollToBottom() {
+      const objDiv = document.getElementById('chat-messages');
+      objDiv.scrollTop = objDiv.scrollHeight;
+  }
+
+  // Event delegation for edit/delete buttons
+  document.getElementById('chat-messages').addEventListener('click', function(e) {
+      const editBtn = e.target.closest('.edit-btn');
+      const deleteBtn = e.target.closest('.delete-btn');
+      if (editBtn) {
+          const messageId = editBtn.dataset.id;
+          editMessage(messageId);
+      }
+      if (deleteBtn) {
+          const messageId = deleteBtn.dataset.id;
+          deleteMessage(messageId);
+      }
+  });
+
+  // Prevent form submit behavior
+  document.getElementById('chat-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      sendMessage();
+  });
+
+  // Handle Enter key to send, disable Shift+Enter newlines
+  const textarea = document.getElementById('chat-message-input');
+  textarea.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+      }
+  });
+
+  textarea.focus();
+  scrollToBottom();
+</script>
+
+<style>
+[id^="mensagem-"] {
+  border-color: transparent;
+  transition: all 0.3s;
+}
+
+[id^="mensagem-"]:hover {
+  background-color: #e4dfdf;
+  border-color: transparent;
+}
+
+[id^="mensagem-"]:hover .message-actions {
+  display: block !important;
+  border-color: transparent;
+}
+
+.modal-container {
+  position: fixed;
+  top: 0; left: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(3px);
+  transition: opacity 0.4s ease;
+  z-index: 10;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+}
+
+.apagar:hover {
+  color: red;
+}
+
+#connection-status {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  padding: 5px 10px;
+  border-radius: 3px;
+  background: #eee;
+  z-index: 1000;
+}
+
+#reconnect-btn {
+  margin-left: 10px;
+  display: none;
+  cursor: pointer;
+}
+</style>
+{% endblock %}

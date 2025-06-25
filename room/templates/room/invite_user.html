@@ -1,0 +1,27 @@
+{% extends 'core/base.html' %}
+{% block content %}~
+
+<div style="padding-bottom: 30px; border-color: transparent;"></div>
+
+
+<div class="paper-chat" style="max-width:400px; margin:auto;">
+  <h2 class="fita">Convidar {{ target.username }}</h2>
+  <form method="post" style="border-color: transparent;">
+    {% csrf_token %}
+    <div class="form-group" style="border-color: transparent;">
+      <label for="room">Selecionar Sala:</label>
+      <select class="form-control" name="room" id="room" required>
+        {% for room in owned_rooms %}
+          <option value="{{ room.id }}">{{ room.nome }}</option>
+        {% empty %}
+          <option disabled>Você não possui nenhuma sala</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary" {% if not owned_rooms %}disabled{% endif %}>
+      <i class="bi bi-person-plus-fill"></i> Enviar convite
+    </button>
+    <a href="{% url 'user_info' target.id %}" class="btn btn-secondary">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

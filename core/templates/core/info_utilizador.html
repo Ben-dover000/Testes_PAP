@@ -1,0 +1,90 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+  <div class="paper-chat">
+    <div class="profile-header" style="position: relative; margin-bottom: 20px; border-color: transparent;">
+      <h2 class="fita" style="display: inline-block; margin: 0;">{{ user_obj.username }}</h2>
+          
+    {% if request.user != user_obj and request.user.owned_rooms.exists %}
+      <div style="position: absolute; top: 0; right: 0; border-color: transparent;">
+        <form method="get" action="{% url 'invite_user' user_obj.id %}" style="border-color: transparent;">
+          <button type="submit" class="tape-button">
+            <i class="bi bi-person-add"></i> Convidar
+          </button>
+        </form>
+      </div>
+    {% endif %}
+    {% if user_obj.perfil.foto_perfil %}
+      <img src="{{ user_obj.perfil.foto_perfil.url }}" alt="Foto de Perfil" style="width: 180px; height: 180px; object-fit: cover; border-radius: 10px; margin-bottom: 20px;">
+    {% endif %}
+
+    <p style = "border-color: transparent;"><strong style = "border-color: transparent;">Nome:</strong> {{ user_obj.first_name|default:"(não definido)" }} {{ user_obj.last_name|default:"" }}</p>
+    <p style = "border-color: transparent;"><strong style = "border-color: transparent;">Email:</strong> {{ user_obj.email|default:"(não definido)" }}</p>
+    <p style = "border-color: transparent;"><strong style = "border-color: transparent;">Data de nascimento:</strong> {{ user_obj.perfil.data_nascimento|date:"d/m/Y"|default:"(não definido)" }}</p>
+    <p style = "border-color: transparent;"><strong style = "border-color: transparent;">Idade:</strong> {{ user_obj.perfil.idade|default:"(não definido)" }}</p>
+    <p style = "border-color: transparent;"><strong style = "border-color: transparent;">Gênero:</strong> 
+      {% if user_obj.perfil.genero == 'M' %}Masculino
+      {% elif user_obj.perfil.genero == 'F' %}Feminino
+      {% elif user_obj.perfil.genero == 'O' %}Outro
+      {% elif user_obj.perfil.genero == 'N' %}Prefiro não dizer
+      {% else %}(não definido)
+      {% endif %}
+    </p>
+
+    <div class="favorite-artists-box caixa-perfil"> 
+      <h3 class="fita" style="text-align: center; border-color:transparent;">Artistas favoritos</h3>
+      <div class="artist-slider-wrapper">
+        <button class="arrow left" onclick="scrollSlider('artist-slider', -1)">&#10094;</button>
+        <div class="artist-slider" id="artist-slider">
+          {% for artista in user_obj.artista_favorito.all %}
+            <div class="artist-item">
+              <a href="{% url 'artista_detail' id_artista=artista.id_artista %}">
+                {{ artista.nome }}
+              </a>
+            </div>
+          {% empty %}
+            <p style="padding: 10px;">Sem artistas favoritos.</p>
+          {% endfor %}
+        </div>
+        <button class="arrow right" onclick="scrollSlider('artist-slider', 1)">&#10095;</button>
+      </div>
+    </div>
+
+    <div class="favorite-albuns-box caixa-perfil"> 
+      <h3 class="fita" style="text-align: center; border-color:transparent;">Álbuns favoritos</h3>
+      <div class="artist-slider-wrapper">
+        <button class="arrow left" onclick="scrollSlider('album-slider', -1)">&#10094;</button>
+        <div class="artist-slider" id="album-slider">
+          {% for album in user_obj.album_favorito.all %}
+            <div class="artist-item">
+              <a href="{% url 'album_detail' id_album=album.id_album %}">
+                {{ album.nome }}
+              </a>
+            </div>
+          {% empty %}
+            <p style="padding: 10px;">Sem álbuns favoritos.</p>
+          {% endfor %}
+        </div>
+        <button class="arrow right" onclick="scrollSlider('album-slider', 1)">&#10095;</button>
+      </div>
+    </div>
+
+    <script>
+      function scrollSlider(id, direction) {
+        const slider = document.getElementById(id);
+        const itemWidth = 180;
+        const visibleItems = 4;
+        const totalItems = slider.children.length;
+        const maxIndex = totalItems - visibleItems;
+
+        let currentIndex = parseInt(slider.getAttribute('data-index')) || 0;
+        currentIndex += direction;
+        currentIndex = Math.max(0, Math.min(currentIndex, maxIndex));
+
+        const scrollAmount = currentIndex * itemWidth;
+        slider.style.transform = `translateX(-${scrollAmount}px)`;
+        slider.setAttribute('data-index', currentIndex);
+      }
+    </script>
+  </div>
+{% endblock %}

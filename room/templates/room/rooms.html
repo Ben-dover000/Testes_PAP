@@ -1,0 +1,27 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div style="border-color:transparent; display: flex; justify-content: center; align-items: center; flex-direction: column;">
+  <div class="paper-chat" style="width: 75%;">
+    <h2 class="fita" style="text-align: center;">As tuas salas</h2>
+    {% for room in rooms %}
+      <div class="paper-stack" style="display: flex; justify-content: center; position: relative;">
+        <div class="salas-mostrar paper-chat" style="text-align: center;">
+          <h2 class="fita">{{ room.nome }}</h2>
+          <p>Sala de: {{ room.dono.username }}</p>
+          <a href="{% url 'room_detail' room.slug %}">Entrar</a>
+          <a href="{% url 'chatroom_def' room.slug %}">
+            <i style="border-color: transparent; cursor: pointer;" class="bi bi-gear"></i>
+          </a>
+        </div>
+      </div>
+    {% empty %}
+      <p style="text-align: center;">Ainda não estás em nenhuma sala. Cria uma!</p>
+    {% endfor %}
+
+    <div style="text-align: center; margin-top: 20px; border-color: transparent;">
+      <a href="{% url 'create_room' %}" class="btn-papel">Criar sala</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

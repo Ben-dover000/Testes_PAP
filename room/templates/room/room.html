@@ -101,6 +101,7 @@
   let confirmCallback = null;
 
   function setupWebSocket() {
+      const wsScheme = window.location.protocol === "https:" ? "wss://" : "ws://";
       chatSocket = new WebSocket(
           'ws://' + window.location.host + '/ws/' + roomName + '/'
       );

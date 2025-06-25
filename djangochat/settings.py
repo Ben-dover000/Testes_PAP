@@ -34,7 +34,12 @@ STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY', '')
 
 
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ['recordrealm.onrender.com', 'localhost', '127.0.0.1']
+
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://recordrealm.onrender.com',
+]
 
 LOGOUT_REDIRECT_URL = '/'
 LOGIN_REDIRECT_URL = '/rooms/'

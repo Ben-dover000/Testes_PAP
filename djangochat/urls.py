@@ -23,4 +23,3 @@ else:
     ]
 
 
-handler404 = 'core.views.pagina_nao_encontrada'

@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 import unicodedata
+import datetime
 
 class Perfil(models.Model):
     GENERO_CHOICES = [
@@ -16,18 +17,18 @@ class Perfil(models.Model):
     genero = models.CharField(max_length=1, choices=GENERO_CHOICES, null=True, blank=True)
 
     def __str__(self):
-        if self.genero == 'Masculino':
+        if self.genero == 'M':
             return f'Perfil do {self.user.username}'
-        elif self.genero == 'Feminino':
+        elif self.genero == 'F':
             return f'Perfil da {self.user.username}'
+        else:
+            return f'Perfil de {self.user.username}'
 
     def remover_acentos(texto):
         return ''.join(c for c in unicodedata.normalize('NFD', texto) if unicodedata.category(c) != 'Mn')
 
-
     @property
     def idade(self):
-        import datetime
         if self.data_nascimento:
             today = datetime.date.today()
             born = self.data_nascimento
@@ -43,11 +44,13 @@ class Artist(models.Model):
     favorito = models.ManyToManyField(User, related_name='artista_favorito', blank=True)
 
     def __str__(self):
-        return self.nome
+        return self.nome or "Artista sem nome"
+
 
 class ArtistaSolo(Artist):
     data_nascimento = models.DateField()
     data_falecimento = models.DateField(null=True, blank=True)
+
 
 class GrupoMusical(Artist):
     data_fundacao = models.DateField(null=True, blank=True)
@@ -77,8 +80,8 @@ class Album(models.Model):
     favorito = models.ManyToManyField(User, related_name='album_favorito', blank=True)
 
     def __str__(self):
-        return self.nome
-    
+        return self.nome or "Álbum sem nome"
+
 
 class Carrinho(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='carrinho_itens')
@@ -91,7 +94,9 @@ class Carrinho(models.Model):
         ordering = ['-adicionado_a']
 
     def __str__(self):
-        return f"{self.album.nome} (x{self.quantidade}) - {self.user.username}"
+        user = self.user.username if self.user else "Utilizador desconhecido"
+        album = self.album.nome if self.album else "Álbum desconhecido"
+        return f"{album} (x{self.quantidade}) - {user}"
 
     @property
     def total_price(self):
@@ -103,13 +108,16 @@ class Pedido(models.Model):
     data_pedido = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Pedido #{self.id} - {self.user.username} - {self.data_pedido.strftime('%Y-%m-%d')}"
+        user = self.user.username if self.user else "Utilizador desconhecido"
+        return f"Pedido #{self.id} - {user} - {self.data_pedido.strftime('%Y-%m-%d')}"
+
 
 class ItemPedido(models.Model):
     pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name='itens')
     album = models.ForeignKey(Album, on_delete=models.CASCADE)
     quantidade = models.PositiveIntegerField(default=1)
-    preco_unitario = models.DecimalField(max_digits=10, decimal_places=2)  # preço na hora do pedido
+    preco_unitario = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
-        return f"{self.album.nome} x{self.quantidade}"
+        album = self.album.nome if self.album else "Álbum desconhecido"
+        return f"{album} x{self.quantidade}"

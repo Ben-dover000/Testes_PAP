@@ -5,13 +5,13 @@ autobahn
 Automat
 certifi
 cffi
-channels
-channels-redis
+channels==3.0.5
+channels-redis==3.3.1
 charset-normalizer
 constantly
 cryptography
-daphne
-Django
+daphne==3.0.2
+Django==4.0
 hyperlink
 idna
 importlib-metadata
@@ -31,8 +31,7 @@ setuptools
 six
 sqlparse
 stripe
-Twisted
-twisted-iocpsupport
+Twisted==22.10.0
 txaio
 typing_extensions
 urllib3

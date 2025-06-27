@@ -190,7 +190,7 @@ function confirmAction(choice) {
 function createMessageElement(data) {
     const isOwnMessage = data.username === userName;
     return `
-    <div id="mensagem-${data.message_id}" data-id="${data.message_id}" style="padding: 0.5rem; border-radius: 5px;">
+    <div id="mensagem-${data.message_id}" data-id="${data.message_id}" style="padding: 0.5rem; border-color: transparent; border-radius: 5px;">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <div>
           <b>${data.username}</b>: <span id="message-content-${data.message_id}">${data.message}</span>
@@ -239,7 +239,7 @@ async function deleteMessage(messageId) {
                     room: roomName
                 }));
             } else {
-                console.warn('WebSocket not connected, message deletion not broadcasted');
+                console.warn('Não conseguimos apagar a mensagem, por favor tente mais tarde.');
             }
         } else {
             alert("Falha ao apagar mensagem. Por favor tente mais tarde");

@@ -8,6 +8,7 @@
 }
 
 body {
+  background-color: green;
   /*background: #dad7cd;*/
   /*background: #ebf4e9;*/
   margin: 0;
@@ -897,7 +898,6 @@ form input[type="date"] {
   border: 2px dashed #d4a373;
   border-radius: 8px;
   background-color: #fffef9;
-  font-family: 'Patrick Hand', cursive;
   font-size: 1em;
   color: #333;
   box-shadow: 2px 2px 4px rgba(0,0,0,0.05);
@@ -905,7 +905,6 @@ form input[type="date"] {
 }
 
 form input[type="date"]::-webkit-datetime-edit {
-  font-family: 'Patrick Hand', cursive;
 }
 
 form input[type="date"]:hover,
@@ -920,7 +919,6 @@ form input[type="date"]:focus {
   background-color: #f9d29d;
   border: 2px dashed #d09a66;
   padding: 10px 20px;
-  font-family: 'Patrick Hand', cursive;
   border-radius: 10px;
   cursor: pointer;
   transition: 0.2s;
